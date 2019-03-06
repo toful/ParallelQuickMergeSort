@@ -82,22 +82,22 @@ int main(int nargs,char* args[])
             qs(&valors[i*porcio],porcio);
 
         // Merge en arbre
-        
+    }    
+
         vin = valors;
         vout = valors2;
-        int increment = 2*porcio; 
-        #pragma omp for            
-        for (m = increment; m <= ndades; m += increment) 
-        {
+        
+        for (m = 2*porcio; m <= ndades; m*=2) 
+        {   
+            #pragma omp parallel for
             for (i = 0; i < ndades; i += m)
                 merge2(&vin[i],m,&vout[i]);
             vtmp=vin;
             vin=vout;
             vout=vtmp;
-            increment = 2*m;
         }
         
-    }
+    
 
     // Validacio
     for (i=1;i<ndades;i++) assert(vin[i-1]<=vin[i]);
