@@ -14,6 +14,16 @@ void qs(int *val, int ne)
     int i,f,j;
     int pivot,vtmp,vfi;
 
+    //Doesn't improve anything
+    /*int ordered = 1;
+    for (i=1; i<ne ;i++){
+        if( val[i-1] > val[i] ){
+            ordered = 0;
+            break;
+        } 
+    }
+    if( ordered ) return;*/
+
     pivot = val[0];
     i = 1;
     f = ne-1; 
@@ -37,6 +47,14 @@ void qs(int *val, int ne)
 
     if ( f>1 ) qs(val,f);
     if ( i < ne-1 ) qs( &val[i], ne-f-1 );
+    
+    //Doesn't improve the speed up
+    /*#pragma omp parallel num_threads(2)
+    {
+        if ( f>1 ) qs(val,f);
+        if ( i < ne-1 ) qs( &val[i], ne-f-1 );
+    }*/
+
 }
 
 void merge2(int* val, int n,int *vo)
@@ -74,7 +92,7 @@ int main(int nargs,char* args[])
 
     porcio = ndades/parts;
 
-    #pragma omp parallel 
+    #pragma omp parallel num_threads( parts ) //little improve
     {
         // Quicksort a parts
         #pragma omp for
