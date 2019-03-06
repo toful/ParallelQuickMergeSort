@@ -34,8 +34,8 @@ void qs(int *val, int ne)
     }
     val[i-1] = pivot;
 
-    if (f>1) qs(val,f);
-    if (i < ne-1) qs(&val[i],ne-f-1);
+    if ( f>1 ) qs(val,f);
+    if ( i < ne-1 ) qs( &val[i], ne-f-1 );
 }
 
 void merge2(int* val, int n,int *vo)
@@ -68,13 +68,14 @@ int main(int nargs,char* args[])
     if (parts < 2) assert("Han d'haver dues parts com a minim" == 0);
     if (ndades % parts) assert("N ha de ser divisible per parts" == 0);
 
-    for(i=0;i<ndades;i++) valors[i]=rand()%MAX_INT;
+    for( i=0; i<ndades; i++ )
+        valors[i] = rand() % MAX_INT;
 
     porcio = ndades/parts;
 
     // Quicksort a parts
     for (i=0; i<parts; i++)
-        qs(&valors[i*porcio],porcio);
+        qs( &valors[i*porcio], porcio );
 
     // Merge en arbre
     vin = valors;
