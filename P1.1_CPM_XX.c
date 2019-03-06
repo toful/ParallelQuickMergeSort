@@ -80,29 +80,30 @@ int main(int nargs,char* args[])
         #pragma omp for
         for (i=0; i<parts; i++)
             qs(&valors[i*porcio],porcio);
-
-        // Merge en arbre
-        
-        vin = valors;
-        vout = valors2;
-        int increment = 2*porcio; 
-        #pragma omp for            
-        for (m = increment; m <= ndades; m += increment) 
-        {
-            for (i = 0; i < ndades; i += m)
-                merge2(&vin[i],m,&vout[i]);
-            vtmp=vin;
-            vin=vout;
-            vout=vtmp;
-            increment = 2*m;
-        }
-        
     }
+
+    
+    // Merge en arbre
+    vin = valors;
+    vout = valors2;
+    for (m = 2*porcio; m <= ndades; m *= 2)
+    {
+        #pragma omp parallel for
+        for (i = 0; i < ndades; i += m)
+            merge2(&vin[i],m,&vout[i]);
+        vtmp=vin;
+        vin=vout;
+        vout=vtmp;
+    }
+
 
     // Validacio
     for (i=1;i<ndades;i++) assert(vin[i-1]<=vin[i]);
-    for (i=0;i<ndades;i+=100)
+
+    //#pragma omp parallel for reduction(+:sum)
+    for ( i=0; i<ndades; i+=100 )
         sum += vin[i];
+
     printf("validacio %lld \n",sum);
     exit(0);
 }
