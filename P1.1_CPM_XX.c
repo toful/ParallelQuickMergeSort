@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>  
+#include <omp.h>
 
 #define NN 384000000
 #define MAX_INT ((int)((unsigned int)(-1)>>1))
@@ -72,20 +73,29 @@ int main(int nargs,char* args[])
 
     porcio = ndades/parts;
 
-    // Quicksort a parts
-    for (i=0; i<parts; i++)
-        qs(&valors[i*porcio],porcio);
-
-    // Merge en arbre
-    vin = valors;
-    vout = valors2;
-    for (m = 2*porcio; m <= ndades; m *= 2)
+    #pragma omp parallel 
     {
-        for (i = 0; i < ndades; i += m)
-            merge2(&vin[i],m,&vout[i]);
-        vtmp=vin;
-        vin=vout;
-        vout=vtmp;
+        // Quicksort a parts
+        #pragma omp for
+        for (i=0; i<parts; i++)
+            qs(&valors[i*porcio],porcio);
+
+        // Merge en arbre
+        
+        vin = valors;
+        vout = valors2;
+        int increment = 2*porcio; 
+        #pragma omp for            
+        for (m = increment; m <= ndades; m += increment) 
+        {
+            for (i = 0; i < ndades; i += m)
+                merge2(&vin[i],m,&vout[i]);
+            vtmp=vin;
+            vin=vout;
+            vout=vtmp;
+            increment = 2*m;
+        }
+        
     }
 
     // Validacio
@@ -95,4 +105,3 @@ int main(int nargs,char* args[])
     printf("validacio %lld \n",sum);
     exit(0);
 }
-
