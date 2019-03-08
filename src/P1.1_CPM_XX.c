@@ -87,12 +87,14 @@ int main(int nargs,char* args[])
     if (parts < 2) assert("Han d'haver dues parts com a minim" == 0);
     if (ndades % parts) assert("N ha de ser divisible per parts" == 0);
 
+    omp_set_num_threads( parts );
+
+    //check: https://people.sc.fsu.edu/~jburkardt/c_src/random_openmp/random_openmp.c
     for( i=0; i<ndades; i++ )
         valors[i] = rand() % MAX_INT;
 
     porcio = ndades/parts;
-
-    #pragma omp parallel num_threads( parts ) //little improve
+    #pragma omp parallel //num_threads( parts ) //little improve
     {
         // Quicksort a parts
         #pragma omp for
