@@ -44,9 +44,12 @@ void qs(int *val, int ne)
         }
     }
     val[i-1] = pivot;
+    
+    if ( f>1 )
+        qs(val,f);
 
-    if ( f>1 ) qs(val,f);
-    if ( i < ne-1 ) qs( &val[i], ne-f-1 );
+    if ( i < ne-1 )       
+        qs( &val[i], ne-f-1 );
     
     //Doesn't improve the speed up
     /*#pragma omp parallel num_threads(2)
@@ -106,7 +109,7 @@ int main(int nargs,char* args[])
     
     for (m = 2*porcio; m <= ndades; m *= 2)
     {
-        #pragma omp parallel for
+        #pragma omp parallel for 
         for (i = 0; i < ndades; i += m)
             merge2(&vin[i],m,&vout[i]);
         vtmp=vin;
