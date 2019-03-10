@@ -6,6 +6,7 @@
 #define NN 384000000
 #define MAX_INT ((int)((unsigned int)(-1)>>1))
 
+#define RAND_SEED 1
 int valors[ NN+1 ];
 int valors2[ NN+1 ];
 
@@ -75,6 +76,13 @@ void merge2(int* val, int n,int *vo)
             vo[i] = val[posj++];
 }
 
+void assert_continue(int *vin, int n){
+    int i;
+
+    for (i = 1; i < n; i++)
+        assert(vin[i-1] <= vin[i]);
+}
+
 int main(int nargs,char* args[])
 {
     int ndades,i,m,parts,porcio;
@@ -93,9 +101,18 @@ int main(int nargs,char* args[])
     omp_set_num_threads( parts );
 
     //check: https://people.sc.fsu.edu/~jburkardt/c_src/random_openmp/random_openmp.c
+    /*
+    #pragma omp parallel
+    {
+        srand(RAND_SEED ^ omp_get_num_threads());
+        #pragma omp parallel
+        for( i=0; i<ndades; i++ )
+            valors[i] = rand() % MAX_INT;
+    }*/
+    
     for( i=0; i<ndades; i++ )
-        valors[i] = rand() % MAX_INT;
-
+            valors[i] = rand() % MAX_INT;
+    
     porcio = ndades/parts;
     #pragma omp parallel //num_threads( parts ) //little improve
     {
@@ -121,7 +138,14 @@ int main(int nargs,char* args[])
 
 
     // Validacio
-    for (i=1;i<ndades;i++) assert(vin[i-1]<=vin[i]);
+    #pragma omp parallel for
+    for (i=0; i<parts; i++)
+            assert_continue(&vin[i*porcio],porcio);
+
+    for (i = porcio; i < ndades; i+=porcio)
+        assert(vin[i-1]<=vin[i]);
+    
+    //for (i=1;i<ndades;i++) assert(vin[i-1]<=vin[i]);
 
     //#pragma omp parallel for reduction(+:sum)
     for ( i=0; i<ndades; i+=100 )
