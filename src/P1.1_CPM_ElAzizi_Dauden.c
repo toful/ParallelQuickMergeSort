@@ -15,16 +15,6 @@ void qs(int *val, int ne)
     int i,f,j;
     int pivot,vtmp,vfi;
 
-    //Doesn't improve anything
-    /*int ordered = 1;
-    for (i=1; i<ne ;i++){
-        if( val[i-1] > val[i] ){
-            ordered = 0;
-            break;
-        } 
-    }
-    if( ordered ) return;*/
-
     pivot = val[0];
     i = 1;
     f = ne-1; 
@@ -51,13 +41,6 @@ void qs(int *val, int ne)
 
     if ( i < ne-1 )       
         qs( &val[i], ne-f-1 );
-    
-    //Doesn't improve the speed up
-    /*#pragma omp parallel num_threads(2)
-    {
-        if ( f>1 ) qs(val,f);
-        if ( i < ne-1 ) qs( &val[i], ne-f-1 );
-    }*/
 
 }
 
@@ -147,7 +130,6 @@ int main(int nargs,char* args[])
     
     //for (i=1;i<ndades;i++) assert(vin[i-1]<=vin[i]);
 
-    //#pragma omp parallel for reduction(+:sum)
     for ( i=0; i<ndades; i+=100 )
         sum += vin[i];
 
