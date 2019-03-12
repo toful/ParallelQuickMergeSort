@@ -7,7 +7,7 @@
 # General defines
 CC = cc
 
-SRC = P1.1_CPM_XX.c
+SRC = P1.1_CPM_ElAzizi_Dauden.c
 
 BIN = parallel.obj
 
@@ -15,7 +15,7 @@ CFLAGS = -fopenmp
 
 ######################################################################
 all :
-		$(CC) -O3 $(SRC) $(CFLAGS) -o $(BIN)
+		$(CC) -Wall -O3 $(SRC) $(CFLAGS) -o $(BIN)
 
 clean :
 		rm -rf $(BIN)

@@ -12,7 +12,7 @@ int valors2[ NN+1 ];
 
 void qs(int *val, int ne)
 {
-    int i,f,j;
+    int i,f;
     int pivot,vtmp,vfi;
 
     pivot = val[0];
@@ -45,9 +45,8 @@ void qs(int *val, int ne)
 }
 
 void merge2(int* val, int n,int *vo)
-{
-    int vtmp;
-    int i,j,posi,posj; 
+{   
+    int i,posi,posj; 
 
     posi = 0;
     posj = (n/2);
@@ -111,7 +110,7 @@ int main(int nargs,char* args[])
     
     for (m = 2*porcio; m <= ndades; m *= 2)
     {
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for (i = 0; i < ndades; i += m)
             merge2(&vin[i],m,&vout[i]);
         vtmp=vin;
