@@ -12,8 +12,8 @@ For a sigle execution:
 ```
 $ ./parallel.obj num_data num_threads
 ```
-* ** num_data -> ** lenght of the array that will be sorted
-* ** num_threads -> ** number of threads that will be used for parallelizing the code
+* num_data ->  lenght of the array that will be sorted
+* num_threads -> number of threads that will be used for parallelizing the code
 
 You can also use the execute script to carry out some executions using a different number of threads
 ```
