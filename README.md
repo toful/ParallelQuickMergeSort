@@ -1,5 +1,5 @@
 # ParallelQuickMergeSort
-QuickMerge Sort version Parallelized using OpenMP during the Parallel and Massive Computation Subject, URV.
+QuickMerge Sort version Parallelized using OpenMP and MPI during the Parallel and Massive Computation Subject, URV.
 
 ## Build
 For building the code you can use the Makefile included in the src folder:
@@ -7,7 +7,8 @@ For building the code you can use the Makefile included in the src folder:
 $ make
 ```
 
-## Usage
+## OpenMP version Usage
+
 For a sigle execution:
 ```
 $ ./parallel.obj num_data num_threads
