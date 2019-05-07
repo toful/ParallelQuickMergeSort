@@ -7,8 +7,10 @@
 #define NN 384000000
 #define MAX_INT ((int)((unsigned int)(-1)>>1))
 
-int valors[ NN+1 ];
-int valors2[ NN+1 ];
+
+int * valors;
+//int ranks [128]; 
+//int valors2[ NN+1 ];
 
 void qs(int *val, int ne)
 {
@@ -62,18 +64,21 @@ int main(int nargs,char* args[])
     /* Number of processos */
     int n_procc;
     /* Source ID */
-    //int sid;
+    int sid;
     /* Destination ID */
-    //int did;
-    /* Message TAG */
-    //int tag = 0;
+    int did;
+    /* logic rank */
+    int logic_id = 0;
+
 
     int ndades, i, parts, porcio;
-    int *vin, *vout;
+    
+    int *vin, *vout, *tmp;
     long long sum=0;
 
     /* Status */
-    //MPI_Status status;
+    MPI_Status status;
+    
     assert(nargs == 3);
 
     ndades = atoi(args[1]);
@@ -84,49 +89,66 @@ int main(int nargs,char* args[])
     if (ndades % parts) assert("N ha de ser divisible per parts" == 0);
 
     porcio = ndades/parts;
-
+    
     /* Init MPI */
     //MPI_Init(&nargs, args);
     MPI_Init(NULL, NULL);
-    /* Get the id or rank */
+    
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
     /* Get number of processes*/
     MPI_Comm_size(MPI_COMM_WORLD, &n_procc);
 
+    int * sub_valors = malloc( sizeof(int) * porcio * 2 );
+    assert( sub_valors != NULL );
+    for( i=0; i < id * porcio; i++ ) rand() % MAX_INT;
+    for( i=0; i < porcio; i++ ) sub_valors[i] = rand() % MAX_INT;
 
-    if( id == 0 ){
-        for( i=0; i<ndades; i++) valors[i]=rand()%MAX_INT;
+    // Hacer el qs
+    qs( sub_valors, porcio);
+    if ( ( id % 2 ) && (id != 0) ){
+        MPI_Send(sub_valors, porcio, MPI_INT, id-1, 0,MPI_COMM_WORLD);
+        free(sub_valors);
+        
+        goto end_jmp;
+    }
+    else{
+        MPI_Recv(&sub_valors[porcio], porcio, MPI_INT, id+1, 0, MPI_COMM_WORLD, &status);       
+        porcio *= 2;
     }
     
-    int *sub_valors = (int *) malloc( sizeof(int) * ndades );
-    assert( sub_valors != NULL );
+    logic_id = id / 2;
 
-    MPI_Scatter( &valors, porcio, MPI_INT, sub_valors, porcio, MPI_INT, 0, MPI_COMM_WORLD );
-    // Quicksort a parts
-    qs( sub_valors, porcio);
-    MPI_Gather( sub_valors, porcio, MPI_INT, &valors, porcio, MPI_INT, 0, MPI_COMM_WORLD);
+    vout = malloc(sizeof(int) * porcio);
+    did = ((id -2) < 0) ? 0 : id -2 ;
+    sid = id + 2;
 
-    porcio = porcio * 2;
-    while( ndades/porcio > 1 ){
-        MPI_Scatter( &valors, porcio, MPI_INT, sub_valors, porcio, MPI_INT, 0, MPI_COMM_WORLD );
-        vin = sub_valors;
-        vout = valors2;
-        merge2( vin, porcio, vout );
-        
-        MPI_Gather( vout, porcio, MPI_INT, &valors, porcio, MPI_INT, 0, MPI_COMM_WORLD);
+    while ( ndades/porcio > 1 ) {
+        merge2( sub_valors, porcio, vout);
 
-        //if( id == 0 ){
-            porcio = porcio * 2;
-        //}
+        tmp = sub_valors;
+        sub_valors = vout;
+        vout = tmp;
 
+        if ( (logic_id%2) || (sid > n_procc)){
+            MPI_Send(sub_valors, porcio, MPI_INT,  did, 0, MPI_COMM_WORLD);
+            free( sub_valors );
+            free( vout );
+            goto end_jmp;
+        }
+
+        porcio *= 2;
+        sub_valors = realloc(sub_valors, sizeof(int) * porcio);
+        vout = realloc(vout, sizeof(int) * porcio);
+
+        MPI_Recv(&sub_valors[porcio/2], porcio/2, MPI_INT, sid, 0, MPI_COMM_WORLD, &status);
+        did -= 2;
+        sid += 2;
+        logic_id /= 2;
     }
 
     if( id == 0 ){
-        vin = valors;
-        vout = valors2;
-        merge2( vin, porcio, vout );
+        merge2( sub_valors, porcio, vout );
         vin = vout;
-   
         // Validacio
         for ( i=1; i<ndades; i++ ) assert(vin[i-1]<=vin[i]);
         for ( i=0; i<ndades; i+=100 )
@@ -134,7 +156,10 @@ int main(int nargs,char* args[])
         printf("validacio %lld \n",sum);
     }
 
+end_jmp:
+
     MPI_Barrier( MPI_COMM_WORLD );
     MPI_Finalize();
     return 0 ;
 }
+
