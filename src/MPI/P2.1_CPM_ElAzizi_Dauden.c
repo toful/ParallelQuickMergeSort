@@ -69,7 +69,8 @@ int main(int nargs,char* args[])
     int did;
     /* logic rank */
     int logic_id = 0;
-
+    /* index multiplayer */ 
+    int ind = 2;
 
     int ndades, i, parts, porcio;
     
@@ -125,7 +126,8 @@ int main(int nargs,char* args[])
     vout = malloc(sizeof(int) * porcio);
     did = ((id -2) < 0) ? 0 : id -2 ;
     sid = id + 2;
-
+    
+    
     while ( ndades/porcio > 1 ) {
         merge2( sub_valors, porcio, vout);
         // Assert Limits 
@@ -135,20 +137,29 @@ int main(int nargs,char* args[])
         sub_valors = vout;
         vout = tmp;
 
+        printf("[%d] SID: %d  , DID: %d, LOGIC: %d, PORC: %d\n",id, sid, did, logic_id ,(ndades/porcio));
+
         if ( (logic_id%2) || (sid > n_procc)){
+            printf("[%d]Sends to %d\n",id, did);
             MPI_Send(sub_valors, porcio, MPI_INT,  did, 0, MPI_COMM_WORLD);
             free( sub_valors );
             free( vout );
+
             goto end_jmp;
         }
 
         porcio *= 2;
         sub_valors = realloc(sub_valors, sizeof(int) * porcio);
         vout = realloc(vout, sizeof(int) * porcio);
-
+        printf("[%d] Recieves from %d \n", id, sid);
         MPI_Recv(&sub_valors[porcio/2], porcio/2, MPI_INT, sid, 0, MPI_COMM_WORLD, &status);
-        did -= 2;
-        sid += 2;
+        
+        
+        ind = ind*2; 
+
+        did = id - ind;
+        sid = id + ind;
+        
         logic_id /= 2;
     }
 
