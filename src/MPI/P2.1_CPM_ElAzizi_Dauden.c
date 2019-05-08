@@ -63,10 +63,6 @@ int main(int nargs,char* args[])
     int id;
     /* Number of processos */
     int n_procc;
-    /* Source ID */
-    int sid;
-    /* Destination ID */
-    int did;
     /* logic rank */
     int logic_id = 0;
     /* index multiplayer */ 
@@ -74,7 +70,7 @@ int main(int nargs,char* args[])
 
     int ndades, i, parts, porcio;
     
-    int *vin, *vout, *tmp;
+    int *vout, *tmp;
     long long sum=0;
 
     /* Status */
@@ -101,7 +97,9 @@ int main(int nargs,char* args[])
 
     int * sub_valors = malloc( sizeof(int) * porcio * 2 );
     assert( sub_valors != NULL );
-    for( i=0; i < id * porcio; i++ ) rand() % MAX_INT;
+
+
+    for( i=0; i < id * porcio; i++ ) rand();
     for( i=0; i < porcio; i++ ) sub_valors[i] = rand() % MAX_INT;
 
     // Hacer el qs
@@ -121,11 +119,11 @@ int main(int nargs,char* args[])
         porcio *= 2;
     }
     
-    logic_id = id / 2;
-
+    
     vout = malloc(sizeof(int) * porcio);
-    did = ((id -2) < 0) ? 0 : id -2 ;
-    sid = id + 2;
+
+
+    logic_id = id / 2;
     
     
     while ( ndades/porcio > 1 ) {
@@ -137,39 +135,31 @@ int main(int nargs,char* args[])
         sub_valors = vout;
         vout = tmp;
 
-        printf("[%d] SID: %d  , DID: %d, LOGIC: %d, PORC: %d\n",id, sid, did, logic_id ,(ndades/porcio));
 
-        if ( (logic_id%2) || (sid > n_procc)){
-            printf("[%d]Sends to %d\n",id, did);
-            MPI_Send(sub_valors, porcio, MPI_INT,  did, 0, MPI_COMM_WORLD);
+        if ( (logic_id%2)){
+            // DID = id - did
+            MPI_Send(sub_valors, porcio, MPI_INT,  id - ind, 0, MPI_COMM_WORLD);
             free( sub_valors );
             free( vout );
-
             goto end_jmp;
         }
 
         porcio *= 2;
         sub_valors = realloc(sub_valors, sizeof(int) * porcio);
         vout = realloc(vout, sizeof(int) * porcio);
-        printf("[%d] Recieves from %d \n", id, sid);
-        MPI_Recv(&sub_valors[porcio/2], porcio/2, MPI_INT, sid, 0, MPI_COMM_WORLD, &status);
-        
-        
-        ind = ind*2; 
 
-        did = id - ind;
-        sid = id + ind;
-        
+        // SID = id + ind
+        MPI_Recv(&sub_valors[porcio/2], porcio/2, MPI_INT, id+ind , 0, MPI_COMM_WORLD, &status);
+        ind = ind*2; 
         logic_id /= 2;
     }
 
     if( id == 0 ){
         merge2(sub_valors, porcio, vout);
         assert(vout[(porcio/2)-1] <= vout[porcio/2]);
-        vin = vout;
         // Suma 
         for ( i=0; i<ndades; i+=100 )
-            sum += vin[i];
+            sum += vout[i];
         printf("validacio %lld \n",sum);
     }
 
