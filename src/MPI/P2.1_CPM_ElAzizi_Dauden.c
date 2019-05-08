@@ -105,6 +105,10 @@ int main(int nargs,char* args[])
 
     // Hacer el qs
     qs( sub_valors, porcio);
+    
+    // Validate SQ
+    for ( i=1; i<porcio; i++ ) assert(sub_valors[i-1]<=sub_valors[i]);
+    
     if ( ( id % 2 ) && (id != 0) ){
         MPI_Send(sub_valors, porcio, MPI_INT, id-1, 0,MPI_COMM_WORLD);
         free(sub_valors);
@@ -124,7 +128,9 @@ int main(int nargs,char* args[])
 
     while ( ndades/porcio > 1 ) {
         merge2( sub_valors, porcio, vout);
-
+        // Assert Limits 
+        assert(vout[(porcio/2)-1] <= vout[porcio/2]);
+        
         tmp = sub_valors;
         sub_valors = vout;
         vout = tmp;
@@ -147,10 +153,10 @@ int main(int nargs,char* args[])
     }
 
     if( id == 0 ){
-        merge2( sub_valors, porcio, vout );
+        merge2(sub_valors, porcio, vout);
+        assert(vout[(porcio/2)-1] <= vout[porcio/2]);
         vin = vout;
-        // Validacio
-        for ( i=1; i<ndades; i++ ) assert(vin[i-1]<=vin[i]);
+        // Suma 
         for ( i=0; i<ndades; i+=100 )
             sum += vin[i];
         printf("validacio %lld \n",sum);
